@@ -1,24 +1,38 @@
-import logo from './logo.svg';
-import './App.css';
+import React from 'react';
+import { GameProvider, useGame } from './pages/GameContext';
+
+function Card({ card }) {
+  return (
+    <div>
+      <img src={card.image} alt={card.code} />
+    </div>
+  );
+}
+
+function Game() {
+  const { cards, drawCard } = useGame();
+
+  return (
+    <div>
+      <h2>Game</h2>
+      <button onClick={drawCard}>Draw card</button>
+      <div>
+        {cards.map((card) => (
+          <Card key={card.code} card={card} />
+        ))}
+      </div>
+    </div>
+  );
+}
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <GameProvider>
+      <div className="App">
+        <h1>Card Game</h1>
+        <Game />
+      </div>
+    </GameProvider>
   );
 }
 
