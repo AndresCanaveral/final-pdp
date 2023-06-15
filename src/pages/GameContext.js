@@ -1,44 +1,43 @@
-import React, { createContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import axios from 'axios';
 
 const GameContext = createContext();
 
-export function GameProvider(props) {
+export function useGame() {
+  return useContext(GameContext);
+}
+
+export function GameProvider({ children }) {
+  const [deckId, setDeckId] = useState(null);
   const [cards, setCards] = useState([]);
-  const [selectedCard, setSelectedCard] = useState(null);
-  const [isWon, setIsWon] = useState(false);
 
-  const drawCard = () => {
-    const randomCard = Math.floor(Math.random() * 10) + 1;
-    setCards([...cards, randomCard]);
-    setSelectedCard(randomCard);
-    checkWin(randomCard);
-  };
+  useEffect(() => {
+    const fetchDeck = async () => {
+      const response = await axios.get(
+        'https://deckofcardsapi.com/api/deck/new/shuffle/?deck_count=1'
+      );
+      setDeckId(response.data.deck_id);
+    };
 
-  const checkWin = (card) => {
-    const oppositeCard = getOppositeCard(card);
-    if (cards.includes(oppositeCard)) {
-      setIsWon(true);
+    fetchDeck();
+  }, []);
+
+  const drawCard = async () => {
+    if (deckId) {
+      const response = await axios.get(
+        `https://deckofcardsapi.com/api/deck/${deckId}/draw/?count=1`
+      );
+
+      setCards((prevCards) => [...prevCards, response.data.cards[0]]);
     }
   };
 
-  const getOppositeCard = (card) => {
-    return card > 5 ? card - 5 : card + 5;
+  const value = {
+    cards,
+    drawCard,
   };
 
   return (
-    <GameContext.Provider
-      value={{
-        cards,
-        selectedCard,
-        isWon,
-        drawCard,
-      }}
-    >
-      {props.children}
-    </GameContext.Provider>
+    <GameContext.Provider value={value}>{children}</GameContext.Provider>
   );
-}
-
-export function useGame() {
-  return React.useContext(GameContext);
 }
